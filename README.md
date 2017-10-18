@@ -7,7 +7,7 @@ Tensorflow implementation of Convolutional Neural Networks for super-resolution.
  * h5py
  * matplotlib
 
-This code requires Tensorflow. Also scipy is used instead of Matlab or OpenCV. Especially, installing OpenCV at Linux is sort of complicated. So, with reproducing this paper, I used scipy instead. For more imformation about scipy, click [here](https://www.scipy.org/).
+This code requires Tensorflow. Also scipy is used instead of Matlab or OpenCV. Especially, installing OpenCV at Linux is sort of complicated. So, with reproducing this paper, I used scipy instead. For more imformation about scipy, click [here](https://www.scipy.org/). CuDNN/CUDA are required for gpu support. I believe the correct versions are Cuda 8 and CuDNN 6. Note a Nvidia account is needed for CuDNN
 
 ## Usage
 For training, `python main.py`
@@ -15,7 +15,7 @@ For training, `python main.py`
 For testing, `python main.py --is_train False --stride 21`
 
 ## Result
-After training 15,000 epochs, I got similar super-resolved image to reference paper. Training time takes 12 hours 16 minutes and 1.41 seconds. My desktop performance is Intel I7-6700 CPU, GTX970, and 16GB RAM. Result images are shown below.<br><br>
+After training 10,000 epochs, we got gota good super-resolved image compared to bicubic. Training took around 8 hrs on a 980ti Result images from tegg89 are shown below.<br><br>
 Original butterfly image:
 ![orig](https://github.com/tegg89/SRCNN-Tensorflow/blob/master/result/orig.png)<br>
 Bicubic interpolated image:
@@ -24,9 +24,5 @@ Super-resolved image:
 ![srcnn](https://github.com/tegg89/SRCNN-Tensorflow/blob/master/result/srcnn.png)
 
 ## References
-* [liliumao/Tensorflow-srcnn](https://github.com/liliumao/Tensorflow-srcnn) 
-  * - I referred to this repository which is same implementation using Matlab code and Caffe model.
-<br>
-* [carpedm20/DCGAN-tensorflow](https://github.com/carpedm20/DCGAN-tensorflow) 
-  * - I have followed and learned training process and structure of this repository.
-
+* [tegg89](https://github.com/tegg89/SRCNN-Tensorflow)
+  * base code that we made usabilty improvements to.
