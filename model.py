@@ -40,7 +40,7 @@ class SRCNN(object):
     self.images = tf.placeholder(tf.float32, [None, self.image_size, self.image_size, self.c_dim], name='images')
     #output
     self.labels = tf.placeholder(tf.float32, [None, self.label_size, self.label_size, 1], name='labels')
-    #weights
+    #weights new 9515 architecture for 9 channel input. still 1 channel output for image visualization 
     self.weights = {
       'w1': tf.Variable(tf.random_normal([9, 9, 9, 64], stddev=1e-3), name='w1'),
       'w2': tf.Variable(tf.random_normal([5, 5, 64, 32], stddev=1e-3), name='w2'),
