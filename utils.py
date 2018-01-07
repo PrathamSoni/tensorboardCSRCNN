@@ -16,7 +16,7 @@ import numpy as np
 import tensorflow as tf
 
 FLAGS = tf.app.flags.FLAGS
-
+"""7-1-2 load h5"""
 def read_data(path):
   """
   Read h5 format data file
@@ -25,12 +25,16 @@ def read_data(path):
     path: file path of desired file
     data: '.h5' file format that contains train data values
     label: '.h5' file format that contains train label values
-  """
+  """  
+  print 'check1' 
   with h5py.File(path, 'r') as hf:
     data = np.array(hf.get('data'))
+
     label = np.array(hf.get('label'))
+
     return data, label
 
+"""7-1-1-2"""
 def preprocess(path, scale=3):
   """
   Preprocess single image file 
@@ -44,24 +48,18 @@ def preprocess(path, scale=3):
     label_: image with original resolution (high-resolution)
   """
   image = imread(path, is_grayscale=True)
-  label_ = modcrop(image, scale)
+  label_ = modcrop(image, scale)#7-1-1-2-1 crop image for sclaing
 
   # Must be normalized
   image = image / 255.
   label_ = label_ / 255.
 
-  input_ = scipy.ndimage.interpolation.zoom(label_, (1./scale), prefilter=False)
-  image_path = os.path.join(os.getcwd(), "downsampled.png")
-  imsave(input_, image_path)
-  bicube = scipy.misc.imresize(input_ , (279,279), interp='bicubic', mode=None)
-  bicube = bicube[0:252, 0:252]
-  image_path = os.path.join(os.getcwd(), "bicubic.png")
-  imsave(bicube, image_path)
-  input_ = scipy.ndimage.interpolation.zoom(input_, (scale/1.), prefilter=False)
-  image_path = os.path.join(os.getcwd(), "zoomedout.png")
-  imsave(input_, image_path)
+  input_ = scipy.ndimage.interpolation.zoom(label_, (1./scale), prefilter=False)#down-scale
+  input_ = scipy.ndimage.interpolation.zoom(input_, (scale/1.), prefilter=False)#up-scale
+ 
   return input_, label_
 
+"""7-1-1-1 generating image path for training/testing"""
 def prepare_data(sess, dataset):
   """
   Args:
@@ -74,11 +72,13 @@ def prepare_data(sess, dataset):
     data_dir = os.path.join(os.getcwd(), dataset)
     data = glob.glob(os.path.join(data_dir, "*.bmp"))
   else:
-    data_dir = os.path.join(os.sep, (os.path.join(os.getcwd(), dataset)), "Set5")
+    data_dir = os.path.join(os.sep, (os.path.join(os.getcwd(), dataset)), "Set5")#test folder: Test/Set5/
     data = glob.glob(os.path.join(data_dir, "*.bmp"))
 
+  #return a list of absolute image paths
   return data
 
+"""7-1-1-3"""
 def make_data(sess, data, label):
   """
   Make input data as h5 file format
@@ -92,6 +92,8 @@ def make_data(sess, data, label):
   with h5py.File(savepath, 'w') as hf:
     hf.create_dataset('data', data=data)
     hf.create_dataset('label', data=label)
+    hf.close()
+  print 'check2'
 
 def imread(path, is_grayscale=True):
   """
@@ -103,6 +105,7 @@ def imread(path, is_grayscale=True):
   else:
     return scipy.misc.imread(path, mode='YCbCr').astype(np.float)
 
+"""7-1-1-2-1"""
 def modcrop(image, scale=3):
   """
   To scale down and up the original image, first thing to do is to have no remainder while scaling operation.
@@ -121,48 +124,55 @@ def modcrop(image, scale=3):
     h = h - np.mod(h, scale)
     w = w - np.mod(w, scale)
     image = image[0:h, 0:w]
-  morecrop=image[0:252,0:252]
-  image_path = os.path.join(os.getcwd(), "cropped.png")
-  imsave(morecrop, image_path)
   return image
 
+"""7-1-1 input setup"""
 def input_setup(sess, config):
   """
   Read image files and make their sub-images and saved them as a h5 file format.
   """
   # Load data path
   if config.is_train:
-    data = prepare_data(sess, dataset="Train")
+    data = prepare_data(sess, dataset="Train")#7-1-1-1
   else:
     data = prepare_data(sess, dataset="Test")
 
   sub_input_sequence = []
   sub_label_sequence = []
-  padding = abs(config.image_size - config.label_size) / 2 # 6
-
+  padding =  abs(config.image_size - config.label_size) / 2 # 6
+  
+  #if training
   if config.is_train:
     for i in xrange(len(data)):
-      input_, label_ = preprocess(data[i], config.scale)
-
+      #preprocess each image
+      input_, label_ = preprocess(data[i], config.scale)#7-1-1-2
+      #get image size
       if len(input_.shape) == 3:
         h, w, _ = input_.shape
       else:
         h, w = input_.shape
-
+      #generate patches
       for x in range(0, h-config.image_size+1, config.stride):
         for y in range(0, w-config.image_size+1, config.stride):
           sub_input = input_[x:x+config.image_size, y:y+config.image_size] # [33 x 33]
           sub_label = label_[x+padding:x+padding+config.label_size, y+padding:y+padding+config.label_size] # [21 x 21]
 
           # Make channel value
-          sub_input = sub_input.reshape([config.image_size, config.image_size, 1])  
-          sub_label = sub_label.reshape([config.label_size, config.label_size, 1])
+          #reshape image/label from 2d to 3d
+	  temp_input=np.empty((config.image_size, config.image_size, config.c_dim))
+	  for i in range(0, config.image_size):
+		for j in range(0,config.c_dim):
+			temp_input[i].T[j]=sub_input.reshape([config.image_size, config.image_size, 1])[i].T
 
+          sub_input = temp_input  ###TODO: hardcode 1 !!!
+          sub_label = sub_label.reshape([config.label_size, config.label_size, 1])
+          print sub_label.shape
+	  #append to list
           sub_input_sequence.append(sub_input)
           sub_label_sequence.append(sub_label)
-
-  else:
-    input_, label_ = preprocess(data[0], config.scale)
+    print 'yeet'
+  else:#test
+    input_, label_ = preprocess(data[0], config.scale)# !!!here, only the third image is returned for testing #test_image_path
 
     if len(input_.shape) == 3:
       h, w, _ = input_.shape
@@ -177,9 +187,14 @@ def input_setup(sess, config):
         ny += 1
         sub_input = input_[x:x+config.image_size, y:y+config.image_size] # [33 x 33]
         sub_label = label_[x+padding:x+padding+config.label_size, y+padding:y+padding+config.label_size] # [21 x 21]
-        
-        sub_input = sub_input.reshape([config.image_size, config.image_size, 1])  
+	temp_input=np.empty((config.image_size, config.image_size, config.c_dim))
+      	for i in range(0, config.image_size):
+	  for j in range(0,config.c_dim):
+	    temp_input[i].T[j]=sub_input.reshape([config.image_size, config.image_size, 1])[i].T
+	print 'good'
+        sub_input = temp_input  ###TODO: hardcode 1 !!!
         sub_label = sub_label.reshape([config.label_size, config.label_size, 1])
+
 
         sub_input_sequence.append(sub_input)
         sub_label_sequence.append(sub_label)
@@ -192,18 +207,20 @@ def input_setup(sess, config):
   arrdata = np.asarray(sub_input_sequence) # [?, 33, 33, 1]
   arrlabel = np.asarray(sub_label_sequence) # [?, 21, 21, 1]
 
-  make_data(sess, arrdata, arrlabel)
+  make_data(sess, arrdata, arrlabel)#7-1-1-3, save training/testing data as h5
 
   if not config.is_train:
     return nx, ny
     
 def imsave(image, path):
   return scipy.misc.imsave(path, image)
-
+"""7-1-2 merge patches into an image"""
 def merge(images, size):
   h, w = images.shape[1], images.shape[2]
+
   img = np.zeros((h*size[0], w*size[1], 1))
   for idx, image in enumerate(images):
+    print image.shape
     i = idx % size[1]
     j = idx // size[1]
     img[j*h:j*h+h, i*w:i*w+w, :] = image
