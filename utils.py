@@ -26,7 +26,6 @@ def read_data(path):
     data: '.h5' file format that contains train data values
     label: '.h5' file format that contains train label values
   """  
-  print 'check1' 
   with h5py.File(path, 'r') as hf:
     data = np.array(hf.get('data'))
 
@@ -93,7 +92,6 @@ def make_data(sess, data, label):
     hf.create_dataset('data', data=data)
     hf.create_dataset('label', data=label)
     hf.close()
-  print 'check2'
 
 def imread(path, is_grayscale=True):
   """
@@ -158,19 +156,21 @@ def input_setup(sess, config):
           sub_label = label_[x+padding:x+padding+config.label_size, y+padding:y+padding+config.label_size] # [21 x 21]
 
           # Make channel value
-          #reshape image/label from 2d to 3d
+          # reshape image/label from 2d to 3d
+	  # Temp array to create higher channel input
 	  temp_input=np.empty((config.image_size, config.image_size, config.c_dim))
+	  # nested for loops to createhigh channel input
 	  for i in range(0, config.image_size):
 		for j in range(0,config.c_dim):
 			temp_input[i].T[j]=sub_input.reshape([config.image_size, config.image_size, 1])[i].T
-
-          sub_input = temp_input  ###TODO: hardcode 1 !!!
+  	  #sets input and label
+          sub_input = temp_input
+	  #label is still 1 channel
           sub_label = sub_label.reshape([config.label_size, config.label_size, 1])
-          print sub_label.shape
+	  
 	  #append to list
           sub_input_sequence.append(sub_input)
           sub_label_sequence.append(sub_label)
-    print 'yeet'
   else:#test
     input_, label_ = preprocess(data[0], config.scale)# !!!here, only the third image is returned for testing #test_image_path
 
@@ -191,7 +191,6 @@ def input_setup(sess, config):
       	for i in range(0, config.image_size):
 	  for j in range(0,config.c_dim):
 	    temp_input[i].T[j]=sub_input.reshape([config.image_size, config.image_size, 1])[i].T
-	print 'good'
         sub_input = temp_input  ###TODO: hardcode 1 !!!
         sub_label = sub_label.reshape([config.label_size, config.label_size, 1])
 
