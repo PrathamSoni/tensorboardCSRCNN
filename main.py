@@ -15,7 +15,7 @@ flags.DEFINE_integer("image_size", 33, "The size of image to use [33]")
 flags.DEFINE_integer("label_size", 17, "The size of label to produce [17]")
 flags.DEFINE_float("learning_rate", 1e-4, "The learning rate of gradient descent algorithm [1e-4]")
 flags.DEFINE_float("momentum",0.9,"The momentum of SGD [0.9]")###add momentum for better training performance
-flags.DEFINE_integer("c_dim", 1, "Dimension of image color. [1]")
+flags.DEFINE_integer("c_dim", 9, "Dimension of image color. [1]")
 flags.DEFINE_integer("scale", 3, "The size of scale factor for preprocessing input image [3]")
 flags.DEFINE_integer("stride", 14, "The size of stride to apply input image [14]")
 flags.DEFINE_string("checkpoint_dir", "checkpoint", "Name of checkpoint directory [checkpoint]")
