@@ -19,7 +19,7 @@ class SRCNN(object):
                image_size=33,
                label_size=11, 
                batch_size=128,
-               c_dim=1, 
+               c_dim=9, 
                checkpoint_dir=None, 
                sample_dir=None):
 
