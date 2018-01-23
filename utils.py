@@ -172,7 +172,8 @@ def input_setup(sess, config):
           sub_input_sequence.append(sub_input)
           sub_label_sequence.append(sub_label)
   else:#test
-    input_, label_ = preprocess(data[0], config.scale)# !!!here, only the third image is returned for testing #test_image_path
+   for a in range(0, 5):
+    input_, label_ = preprocess(data[a], config.scale)# !!!here, only the third image is returned for testing #test_image_path
 
     if len(input_.shape) == 3:
       h, w, _ = input_.shape
