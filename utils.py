@@ -41,7 +41,6 @@ def preprocess(path, scale=3):
     (1) Read original image as YCbCr format (and grayscale as default)
     (2) Normalize
     (3) Apply image file with bicubic interpolation
-
   Args:
     path: file path of desired file
     input_: image applied bicubic interpolation (low-resolution)
@@ -154,23 +153,63 @@ def input_setup(sess, config):
       #generate patches
       for x in range(0, h-config.image_size+1, config.stride):
         for y in range(0, w-config.image_size+1, config.stride):
-          sub_input = input_[x:x+config.image_size, y:y+config.image_size] # [33 x 33]
-          sub_label = label_[x+padding:x+padding+config.label_size, y+padding:y+padding+config.label_size] # [21 x 21]
+           # We create the inputs and labels.
+           # We take care to create all surrounding areas of the patch.
 
-          # Make channel value
-          #reshape image/label from 2d to 3d
-	  temp_input=np.empty((config.image_size, config.image_size, config.c_dim))
-	  for i in range(0, config.image_size):
-		for j in range(0,config.c_dim):
-			temp_input[i].T[j]=sub_input.reshape([config.image_size, config.image_size, 1])[i].T
+           # left/up
+           sub_input1 = input_[x - config.image_size:x, y - config.image_size:y]  # [33 x 33]
 
-          sub_input = temp_input  ###TODO: hardcode 1 !!!
-          sub_label = sub_label.reshape([config.label_size, config.label_size, 1])
-          print sub_label.shape
-	  #append to list
-          sub_input_sequence.append(sub_input)
-          sub_label_sequence.append(sub_label)
-    print 'yeet'
+           # right/up
+           sub_input2 = input_[x + config.image_size:x + 2 * config.image_size, y - config.image_size:y]  # [33 x 33]
+
+           # center/up
+           sub_input3 = input_[x:x + config.image_size, y - config.image_size:y]  # [33 x 33]
+
+           # left/center
+           sub_input4 = input_[x - config.image_size:x, y:y + config.image_size]  # [33 x 33]
+
+           # center/center
+           sub_input5 = input_[x:x + config.image_size, y:y + config.image_size]  # [33 x 33]
+           sub_label = label_[int(x + padding):int(x + padding + config.label_size), int(y + padding):int(y + padding + config.label_size)]  # [21 x 21]
+
+           # right/center
+           sub_input6 = input_[x + config.image_size:x + 2 * config.image_size, y:y + config.image_size]  # [33 x 33]
+
+           # center/bottom
+	   sub_input7 = input_[x:x + config.image_size, y + config.image_size:y + 2 * config.image_size]  # [33 x 33]
+
+           # left/bottom
+	   sub_input8 = input_[x - config.image_size:x,y + config.image_size:y + 2 * config.image_size]  # [33 x 33]
+
+	   # right/bottom
+	   sub_input9 = input_[x + config.image_size:x + 2 * config.image_size, y + config.image_size:y + 2 * config.image_size]  # [33 x 33]
+
+	   # Make channel value
+	   # reshape image/label from 2d to 3d
+ 	   # Temp array to create higher channel input
+	   temp_input = np.empty((config.c_dim, config.image_size, config.image_size))
+ 
+	   listOfInputs = [sub_input1, sub_input2, sub_input3, sub_input4, sub_input5, sub_input6, sub_input7, sub_input8, sub_input9]
+                   
+	   # nested for loops to stack the high channel inputs
+ 
+	   #edge cases
+	   if ((x -config.image_size)<0 or (x + config.image_size)>0 or (y -config.image_size)<0 or (y + config.image_size)>0):
+	     for i in range(0, config.c_dim):
+	        temp_input[i] = sub_input5
+
+	   #main block
+	   else:
+	     for i in range(0, config.c_dim):
+	       temp_input[i] = listOfInputs[i]
+
+	   # sets input and label
+	   sub_input = temp_input.reshape([config.image_size, config.image_size, config.c_dim])
+	   # label is still 1 channel
+	   sub_label = sub_label.reshape([config.label_size, config.label_size, 1])
+	   # append to list
+	   sub_input_sequence.append(sub_input)
+	   sub_label_sequence.append(sub_label)
   else:#test
     input_, label_ = preprocess(data[0], config.scale)# !!!here, only the third image is returned for testing #test_image_path
 
@@ -184,20 +223,71 @@ def input_setup(sess, config):
     for x in range(0, h-config.image_size+1, config.stride):
       nx += 1; ny = 0
       for y in range(0, w-config.image_size+1, config.stride):
-        ny += 1
-        sub_input = input_[x:x+config.image_size, y:y+config.image_size] # [33 x 33]
-        sub_label = label_[x+padding:x+padding+config.label_size, y+padding:y+padding+config.label_size] # [21 x 21]
-	temp_input=np.empty((config.image_size, config.image_size, config.c_dim))
-      	for i in range(0, config.image_size):
-	  for j in range(0,config.c_dim):
-	    temp_input[i].T[j]=sub_input.reshape([config.image_size, config.image_size, 1])[i].T
-	print 'good'
-        sub_input = temp_input  ###TODO: hardcode 1 !!!
-        sub_label = sub_label.reshape([config.label_size, config.label_size, 1])
+        # We create the inputs and labels.
+	# We take care to create all surrounding areas of the patch.
 
+	# left/up
+	sub_input1 = input_[x - config.image_size:x, y - config.image_size:y]  # [33 x 33]
 
-        sub_input_sequence.append(sub_input)
-        sub_label_sequence.append(sub_label)
+	# right/up
+	sub_input2 = input_[x + config.image_size:x + 2 * config.image_size,
+                                 y - config.image_size:y]  # [33 x 33]
+
+	# center/up
+	sub_input3 = input_[x:x + config.image_size, y - config.image_size:y]  # [33 x 33]
+
+	# left/center
+	sub_input4 = input_[x - config.image_size:x, y:y + config.image_size]  # [33 x 33]
+
+	# center/center
+	sub_input5 = input_[x:x + config.image_size, y:y + config.image_size]  # [33 x 33]
+	sub_label = label_[int(x + padding):int(x + padding + config.label_size),
+                                int(y + padding):int(y + padding + config.label_size)]  # [21 x 21]
+
+	# right/center
+	sub_input6 = input_[x + config.image_size:x + 2 * config.image_size,
+                                 y:y + config.image_size]  # [33 x 33]
+
+	# center/bottom
+	sub_input7 = input_[x:x + config.image_size,
+                                 y + config.image_size:y + 2 * config.image_size]  # [33 x 33]
+
+	# left/bottom
+	sub_input8 = input_[x - config.image_size:x,
+                                 y + config.image_size:y + 2 * config.image_size]  # [33 x 33]
+
+	# right/bottom
+	sub_input9 = input_[x + config.image_size:x + 2 * config.image_size,
+                                 y + config.image_size:y + 2 * config.image_size]  # [33 x 33]
+
+	# Make channel value
+	# reshape image/label from 2d to 3d
+	# Temp array to create higher channel input
+	temp_input = np.empty((config.c_dim, config.image_size, config.image_size))
+
+	listOfInputs = [sub_input1, sub_input2, sub_input3, sub_input4, sub_input5, sub_input6, sub_input7, sub_input8, sub_input9]
+	# nested for loops to stack the high channel inputs
+
+	#edge cases
+	if ((x -config.image_size)<0 or (x + 2*config.image_size)>w or (y -config.image_size)<0 or (y + 2*config.image_size)>h):
+	  for i in range(0, config.c_dim):
+	    temp_input[i] = sub_input5
+
+	#main block
+	else:
+	  for i in range(0, config.c_dim):
+	    temp_input[i] = listOfInputs[i]
+
+	# sets input and label
+	sub_input = temp_input.reshape([config.image_size, config.image_size, config.c_dim])
+	
+	# label is still 1 channel
+	sub_label = sub_label.reshape([config.label_size, config.label_size, 1])
+	
+	# append to list
+	sub_input_sequence.append(sub_input)
+	sub_label_sequence.append(sub_label)
+       
 
   """
   len(sub_input_sequence) : the number of sub_input (33 x 33 x ch) in one image
@@ -224,5 +314,4 @@ def merge(images, size):
     i = idx % size[1]
     j = idx // size[1]
     img[j*h:j*h+h, i*w:i*w+w, :] = image
-
   return img
