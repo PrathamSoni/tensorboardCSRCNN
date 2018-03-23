@@ -1,6 +1,0 @@
-model_checkpoint_path: "SRCNN.model-74800"
-all_model_checkpoint_paths: "SRCNN.model-74120"
-all_model_checkpoint_paths: "SRCNN.model-74290"
-all_model_checkpoint_paths: "SRCNN.model-74460"
-all_model_checkpoint_paths: "SRCNN.model-74630"
-all_model_checkpoint_paths: "SRCNN.model-74800"
