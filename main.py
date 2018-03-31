@@ -4,7 +4,7 @@ import os
 
 """1.configuration"""
 flags = tf.app.flags
-flags.DEFINE_integer("epoch", 300, "Number of epoch [100]")
+flags.DEFINE_integer("epoch", 1000, "Number of epoch [100]")
 flags.DEFINE_integer("batch_size", 256, "The size of batch images [128]")
 flags.DEFINE_integer("test_batch_size", 1024, "The size of batch images for testing") 
 flags.DEFINE_integer("image_size", 33, "The size of image to use [33]")
@@ -16,10 +16,11 @@ flags.DEFINE_integer("c_dim", 9, "Dimension of image color. [9]")
 flags.DEFINE_integer("scale", 3, "The size of scale factor for preprocessing input image [3]")
 flags.DEFINE_integer("stride", 14, "The size of stride to apply input image [14]")
 flags.DEFINE_string("checkpoint_dir", "checkpoint", "Name of checkpoint directory [checkpoint]")
-flags.DEFINE_string("trn_folderpath", "Train", "Name of sample directory [sample]")
+flags.DEFINE_string("trn_folderpath", "Train/general", "Name of sample directory [sample]")
 flags.DEFINE_string("tst_folderpath", "Test/Set5", "Name of sample directory [sample]")
 flags.DEFINE_boolean("is_train", True, "True for training, False for testing [True]")
 flags.DEFINE_string("new_image_path","path/to/your/image","Path of your image to test")
+flags.DEFINE_string("summary_dir","save_model","Path of your save directory for tensorboard")
 flags.DEFINE_boolean("make_patch",False,"generate patches if h5 already exists [False]")
 
 FLAGS = flags.FLAGS
