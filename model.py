@@ -174,11 +174,12 @@ class SRCNN(object):
         tf.summary.histogram('b3',self.biases['b3'])
         tf.summary.image('images', tf.convert_to_tensor(self.images[:,:,:,(self.config.c_dim-1)//2:(self.config.c_dim+1)//2]))
         tf.summary.image('labels', tf.convert_to_tensor(self.labels))
-        tf.summary.image('predicted',tf.convert_to_tensor(self.pred))     
-        identity1=tf.identity(training_loss)
-        identity2=tf.identity(training_PSNR)
-        identity3=tf.identity(validation_loss)
-        identity4=tf.identity(validation_PSNR)
+        tf.summary.image('predicted',tf.convert_to_tensor(self.pred))   
+        #experimental i dont think we actually need these
+        #identity1=tf.identity(training_loss)
+        #identity2=tf.identity(training_PSNR)
+        #identity3=tf.identity(validation_loss)
+        #identity4=tf.identity(validation_PSNR)
         merged=tf.summary.merge_all()
         train_writer = tf.summary.FileWriter(self.config.summary_dir + '/train', self.sess.graph)
 
@@ -206,8 +207,8 @@ class SRCNN(object):
 
             #print(self.sess.run(average_loss))
             PSNR1=-10*math.log10(average_loss1)
-
-            print(self.sess.run([identity1,identity2], feed_dict={training_loss: average_loss1, training_PSNR:PSNR1}))
+            #experimental I dont think we need it
+            #print(self.sess.run([identity1,identity2], feed_dict={training_loss: average_loss1, training_PSNR:PSNR1}))
             print("Epoch: [%2d], \n\ttime: [%4.2f], \n\ttraining loss: [%.8f], \n\tPSNR: [%.4f]" % (ep, time.time()-start_time, average_loss1,PSNR1))
             
             #valid
@@ -227,7 +228,8 @@ class SRCNN(object):
             average_loss = epoch_loss / batch_count #per sample
             average_loss=average_loss.astype(np.float32)
             PSNR=-10*math.log10(average_loss)
-            print(self.sess.run([identity3,identity4], feed_dict={validation_loss: average_loss, validation_PSNR:PSNR}))
+            #experimental I dont think we need it
+            #print(self.sess.run([identity3,identity4], feed_dict={validation_loss: average_loss, validation_PSNR:PSNR}))
             print("\n\ttime: [%4.2f], \n\ttesting loss: [%.4f], \n\tPSNR: [%.4f]\n\n" % (time.time()-start_time, average_loss,PSNR))
            
  
